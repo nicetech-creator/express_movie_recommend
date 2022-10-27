@@ -48,7 +48,19 @@ async function getRecommendations(req, res) {
     }
   })
 
-  res.status(200).send({favDirector, favGenre})
+  // get recommended movies by director, genre
+  let byDirector = []
+  let byGenre = [] 
+  try {
+    [byDirector, byGenre] = await Promise.all([
+      getRecommendationByDirector(favDirector),
+      getRecommendationByGenre(favGenre)
+    ])
+  } catch (error) {
+    res.status(500).send(error.toString())
+  }
+
+  res.status(200).send({byDirector, byGenre})
 }
 
 module.exports = {
