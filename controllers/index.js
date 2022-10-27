@@ -9,6 +9,8 @@ const {
 async function getRecommendations(req, res) {
   // Gets list of movices a user has rated
   let ratedMovies = []
+  let ratedMoviesDic = {}  // to speed up filter process
+
   try {
     ratedMovies = await getRatedMovies(req.userId);
   } catch (error) {
@@ -25,6 +27,7 @@ async function getRecommendations(req, res) {
   let maxGenreRate = 0
 
   ratedMovies.forEach((movie) => {
+    ratedMoviesDic[movie.id] = true
     if (movie.userRating >= RateThreashold) {
       if (directorRatings.hasOwnProperty(movie.director)) 
         directorRatings[movie.director] += 1
@@ -60,7 +63,14 @@ async function getRecommendations(req, res) {
     res.status(500).send(error.toString())
   }
 
-  res.status(200).send({byDirector, byGenre})
+  // Filter out already seen movies from recommends
+  const checkSeen = (movie) => {
+    return !ratedMoviesDic.hasOwnProperty(movie.id)
+  }
+  byDirector = byDirector.filter(checkSeen)
+  byGenre = byGenre.filter(checkSeen)
+
+  res.status(200).send({ratedMovies, byDirector, byGenre})
 }
 
 module.exports = {
