@@ -7,6 +7,18 @@ const {
 } = require('../helperFunctions')
 
 async function getRecommendations(req, res) {
+  // Check if saved recommendations exists
+  try {
+    let savedRecommendations = await getSavedRecommendations(req.userId)
+    if (savedRecommendations != null){
+      console.log('saved response')
+      return res.status(200).send(savedRecommendations)
+    }
+      
+  } catch (error) {
+    // continue
+  }
+
   // Gets list of movices a user has rated
   let ratedMovies = []
   let ratedMoviesDic = {}  // to speed up filter process
@@ -14,7 +26,7 @@ async function getRecommendations(req, res) {
   try {
     ratedMovies = await getRatedMovies(req.userId);
   } catch (error) {
-    res.status(500).send(error.toString())
+    return res.status(500).send(error.toString())
   }
 
   // Figure out favorite director, favorite genre
@@ -60,7 +72,7 @@ async function getRecommendations(req, res) {
       getRecommendationByGenre(favGenre)
     ])
   } catch (error) {
-    res.status(500).send(error.toString())
+    return res.status(500).send(error.toString())
   }
 
   // Filter out already seen movies from recommends
@@ -70,7 +82,17 @@ async function getRecommendations(req, res) {
   byDirector = byDirector.filter(checkSeen)
   byGenre = byGenre.filter(checkSeen)
 
-  res.status(200).send({ratedMovies, byDirector, byGenre})
+  let recommendations = {
+    "favDirector": favDirector,
+    "favGenre": favGenre,
+    byDirector,
+    byGenre
+  }
+
+  res.status(200).send(recommendations)
+  // save recommedations for the user
+  // Don't care about result
+  saveRecommendations(req.userId, recommendations)
 }
 
 module.exports = {
