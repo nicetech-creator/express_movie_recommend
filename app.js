@@ -1,12 +1,5 @@
 const express = require('express')
 const cors = require('cors')
-const {
-  getRatedMovies,
-  getRecommendationByDirector,
-  getRecommendationByGenre,
-  saveRecommendations,
-  getSavedRecommendations,
-} = require('./helperFunctions')
 
 const router = require('./routes')
 
